@@ -9001,6 +9001,12 @@
     githubId = 8900;
     name = "Johan Magnus Jonsson";
   };
+  jmanch = {
+    email = "jmanch@protonmail.com";
+    github = "jmanch";
+    githubId = 61563764;
+    name = "Joshua Manchester";
+  };
   jmbaur = {
     email = "jaredbaur@fastmail.com";
     github = "jmbaur";
