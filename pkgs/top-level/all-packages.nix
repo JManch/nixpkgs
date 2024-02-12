@@ -26091,6 +26091,8 @@ with pkgs;
   atlassian-crowd = callPackage ../servers/atlassian/crowd.nix { };
   atlassian-jira = callPackage ../servers/atlassian/jira.nix { };
 
+  broadcast-box-unwrapped = callPackage ../by-name/br/broadcast-box/unwrapped.nix { };
+
   cadvisor = callPackage ../servers/monitoring/cadvisor { };
 
   cassandra_3_0 = callPackage ../servers/nosql/cassandra/3.0.nix {
