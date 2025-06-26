@@ -34,7 +34,13 @@ let
     };
 
   # Creates a WPA2 fallback network
-  mkWPA2Fallback = opts: opts // { authProtocols = subtractLists wpa3Protocols opts.authProtocols; };
+  mkWPA2Fallback =
+    opts:
+    opts
+    // {
+      inherit (opts.wpa2Fallback) psk pskRaw auth;
+      authProtocols = subtractLists wpa3Protocols opts.authProtocols;
+    };
 
   # Networks attrset as a list
   networkList = attrValues cfg.networks;
@@ -42,7 +48,8 @@ let
   # List of all networks (normal + generated fallbacks)
   allNetworks =
     if cfg.fallbackToWPA2 then
-      map increaseWPA3Priority networkList ++ map mkWPA2Fallback (filter hasMixedWPA networkList)
+      map increaseWPA3Priority networkList
+      ++ map mkWPA2Fallback (filter (opts: hasMixedWPA opts && !opts.wpa2Fallback.disable) networkList)
     else
       networkList;
 
@@ -282,7 +289,7 @@ in
       networks = mkOption {
         type = types.attrsOf (
           types.submodule (
-            { name, ... }:
+            { name, config, ... }:
             {
               options = {
                 ssid = mkOption {
@@ -336,6 +343,88 @@ in
                     Mutually exclusive with {var}`psk` and {var}`auth`.
                     :::
                   '';
+                };
+
+                wpa2Fallback = {
+                  disable = mkOption {
+                    type = types.bool;
+                    default = false;
+                    description = ''
+                      Do not create a WPA2 fallback variant of this network
+                      when {option}`config.networking.wireless.fallbackToWPA2`
+                      is enabled.
+                    '';
+                  };
+
+                  psk = mkOption {
+                    type = types.nullOr (types.strMatching "[[:print:]]{8,63}");
+                    default = null;
+                    description = ''
+                      The network's pre-shared key in plaintext defaulting
+                      to being a network without any authentication.
+
+                      ::: {.warning}
+                      Be aware that this will be written to the Nix store
+                      in plaintext! Use {var}`pskRaw` with an external
+                      reference to keep it safe.
+                      :::
+
+                      ::: {.note}
+                      Mutually exclusive with {var}`pskRaw`.
+                      :::
+                    '';
+                  };
+
+                  pskRaw = mkOption {
+                    type = types.nullOr (types.strMatching "([[:xdigit:]]{64})|(ext:[^=]+)");
+                    default = config.pskRaw;
+                    example = "ext:name_of_the_secret_here";
+                    description = ''
+                      Either the raw pre-shared key in hexadecimal format
+                      or the name of the secret (as defined inside
+                      [](#opt-networking.wireless.secretsFile) and prefixed
+                      with `ext:`) containing the network pre-shared key.
+
+                      ::: {.warning}
+                      Be aware that this will be written to the Nix store
+                      in plaintext! Always use an external reference.
+                      :::
+
+                      ::: {.note}
+                      The external secret can be either the plaintext
+                      passphrase or the raw pre-shared key.
+                      :::
+
+                      ::: {.note}
+                      Mutually exclusive with {var}`psk` and {var}`auth`.
+                      :::
+                    '';
+                  };
+
+                  auth = mkOption {
+                    type = types.nullOr types.str;
+                    default = null;
+                    example = ''
+                      eap=PEAP
+                      identity="user@example.com"
+                      password=ext:example_password
+                    '';
+                    description = ''
+                      Use this option to configure advanced authentication methods
+                      like EAP. See {manpage}`wpa_supplicant.conf(5)` for example
+                      configurations.
+
+                      ::: {.warning}
+                      Be aware that this will be written to the Nix store
+                      in plaintext! Use an external reference like
+                      `ext:secretname` for secrets.
+                      :::
+
+                      ::: {.note}
+                      Mutually exclusive with {var}`psk` and {var}`pskRaw`.
+                      :::
+                    '';
+                  };
                 };
 
                 authProtocols = mkOption {
