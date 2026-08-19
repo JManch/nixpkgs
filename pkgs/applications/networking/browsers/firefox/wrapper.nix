@@ -11,8 +11,7 @@
   writeText,
 
   ## various stuff that can be plugged in
-  ffmpeg_7,
-  ffmpeg_8,
+  ffmpeg_9,
   libxxf86vm,
   libxxf86dga,
   libxt,
@@ -93,7 +92,7 @@ let
       # explicit browser support; keep versioned pins here (never the ffmpeg alias)
       # and add a tier when a release gains the next ABI. 146 added libavcodec 62
       # (https://bugzilla.mozilla.org/show_bug.cgi?id=1962139), not uplifted to ESR 140.
-      ffmpegPackage = if lib.versionAtLeast browser.version "146" then ffmpeg_8 else ffmpeg_7;
+      ffmpegPackage = ffmpeg_9;
       gssSupport = browser.gssSupport or false;
       alsaSupport = browser.alsaSupport or false;
       pipewireSupport = browser.pipewireSupport or false;
